@@ -275,8 +275,9 @@ textarea::placeholder { color: var(--text3); }
 .model-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 select {
@@ -287,11 +288,140 @@ select {
   font-size: 12px;
   cursor: pointer;
   outline: none;
+  flex-shrink: 0;
 }
 
-select option { background: var(--bg2); color: var(--text); }
+select option, select optgroup { background: var(--bg2); color: var(--text); }
 
-.powered { font-size: 11px; color: var(--text3); }
+.powered { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+.key-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: none;
+}
+
+.key-status.active {
+  display: inline-block;
+  background: var(--bg3);
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+  cursor: pointer;
+}
+
+/* BYOK Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 30;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-tag {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.key-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.key-input:focus { border-color: var(--accent); }
+.key-input::placeholder { color: var(--text3); }
+
+.modal-actions { display: flex; gap: 8px; }
+
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.modal-btn:hover { border-color: var(--text2); color: var(--text); }
+
+.modal-btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.modal-btn.primary:hover { opacity: 0.88; }
+
+.modal-footer {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.8;
+}
+
+.modal-link {
+  color: var(--accent2);
+  text-decoration: none;
+}
+
+.modal-link:hover { text-decoration: underline; }
+
+.modal-remove {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+}
+
+.modal-remove:hover { text-decoration: underline; }
 
 /* History Panel */
 .overlay {
