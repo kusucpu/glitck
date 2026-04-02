@@ -6,8 +6,10 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, model = 'openai' } = req.body;
+  const FREE_MODELS = ['qwen-safety'];
+  const { messages, model = 'qwen-safety' } = req.body;
   if (!messages) return res.status(400).json({ error: 'messages required' });
+  if (!FREE_MODELS.includes(model)) return res.status(403).json({ error: 'use your own key for this model' });
 
   try {
     const response = await fetch('https://text.pollinations.ai/openai', {
