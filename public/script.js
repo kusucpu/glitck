@@ -1,5 +1,4 @@
-const CHAT_URL_SERVER = '/api/chat';
-const CHAT_URL_DIRECT = 'https://text.pollinations.ai/openai';
+const CHAT_URL = '/api/chat'; // semua request lewat sini, CORS aman
 const IMG_URL = 'https://image.pollinations.ai/prompt/';
 const MAX_HISTORY = 20;
 const HISTORY_KEY = 'glitck_img_history';
@@ -302,35 +301,24 @@ async function send() {
   messages.push({ role: 'user', content: text });
 
   const typing = addTyping();
-  const userKey = getUserKey();
   const model = modelSelect.value;
 
   try {
-    let res, data;
+    // Semua request lewat Vercel function — solved CORS + key security
+    const res = await fetch(CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages,
+        userKey: getUserKey() || undefined // undefined = tidak dikirim kalau kosong
+      })
+    });
 
-    if (userKey) {
-      // BYOK — direct to Pollinations, never touches our server
-      res = await fetch(CHAT_URL_DIRECT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userKey}`
-        },
-        body: JSON.stringify({ model, messages, temperature: 0.85, max_tokens: 800 })
-      });
-    } else {
-      // Free tier — proxy via our Vercel function (key hidden server-side)
-      res = await fetch(CHAT_URL_SERVER, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, messages })
-      });
-    }
-
-    data = await res.json();
+    const data = await res.json();
     typing.remove();
 
-    if (!res.ok) throw new Error(data.error?.message || `error ${res.status}`);
+    if (!res.ok) throw new Error(data.detail || data.error || `error ${res.status}`);
 
     const reply = data.choices?.[0]?.message?.content || 'hmm. nothing.';
     messages.push({ role: 'assistant', content: reply });
