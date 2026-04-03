@@ -1,13 +1,7 @@
-const FREE_MODELS = ['nova-fast'];
-const BYOP_MODELS = [
-  'nova-fast', 'qwen-safety', 'gemini-fast', 'mistral', 'qwen-coder',
-  'gemini-search', 'perplexity-fast', 'openai-fast', 'openai',
-  'qwen-vision', 'minimax', 'deepseek', 'perplexity-reasoning',
-  'openai-audio', 'midijourney', 'claude-fast', 'kimi', 'glm', 'qwen-large'
-];
-const POLLINATIONS_URL = 'https://text.pollinations.ai/openai';
+const POLLINATIONS_API_URL = 'https://gen.pollinations.ai/v1/chat/completions';
 
 export default async function handler(req, res) {
+  // CORS Header
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,41 +10,39 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { messages, model = 'nova-fast', userKey } = req.body;
-  if (!messages?.length) return res.status(400).json({ error: 'messages required' });
+  if (!messages?.length) return res.status(400).json({ error: 'Messages required' });
 
-  let apiKey = null;
+  const apiKey = userKey || process.env.POLLINATIONS_API_KEY;
 
-  if (userKey) {
-    if (!BYOP_MODELS.includes(model)) return res.status(403).json({ error: 'model not available' });
-    apiKey = userKey;
-  } else if (FREE_MODELS.includes(model)) {
-    apiKey = process.env.POLLINATIONS_API_KEY || null;
-  } else {
-    return res.status(403).json({ error: 'bring your own pollen to use this model' });
+  if (!apiKey) {
+    return res.status(403).json({ 
+      error: 'Key needed.' 
+    });
   }
 
-  const headers = { 'Content-Type': 'application/json' };
-  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-
   try {
-    const upstream = await fetch(POLLINATIONS_URL, {
+    const upstream = await fetch(POLLINATIONS_API_URL, {
       method: 'POST',
-      headers,
-      body: JSON.stringify({ model, messages, temperature: 0.85, max_tokens: 800 })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}` 
+      },
+      body: JSON.stringify({ 
+        model, 
+        messages, 
+        temperature: 0.7, 
+        max_tokens: 1500 
+      })
     });
 
-    const text = await upstream.text();
+    const data = await upstream.json();
 
     if (!upstream.ok) {
-      console.error(`Pollinations ${upstream.status}:`, text.slice(0, 300));
-      return res.status(502).json({ error: `upstream ${upstream.status}`, detail: text.slice(0, 200) });
+      console.error('Upstream Error:', data);
+      throw new Error(data.error?.message || `API Error ${upstream.status}`);
     }
 
-    try {
-      return res.status(200).json(JSON.parse(text));
-    } catch {
-      return res.status(502).json({ error: 'invalid JSON from upstream', detail: text.slice(0, 200) });
-    }
+    return res.status(200).json(data);
 
   } catch (err) {
     console.error('Fetch error:', err.message);
