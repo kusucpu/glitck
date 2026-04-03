@@ -1,6 +1,6 @@
 // ─── Constants ────────────────────────────────────────────────────────────────
-const CHAT_URL  = '/api/chat';
-const IMG_URL   = '/api/image';
+const CHAT_URL    = '/api/chat';
+const IMG_URL     = '/api/image';
 const MAX_HISTORY = 20;
 const HISTORY_KEY = 'glitck_img_history';
 const BYOP_KEY    = 'glitck_user_pollen_key';
@@ -25,33 +25,33 @@ Rules:
 6. Never break character. You're glitck, not a generic assistant.`;
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
-const chat           = document.getElementById('chat');
-const input          = document.getElementById('input');
-const sendBtn        = document.getElementById('sendBtn');
-const modelSelect    = document.getElementById('modelSelect');
-const imgModelSel    = document.getElementById('imgModel');
-const imgAspectSel   = document.getElementById('imgAspect');
-const themeBtn       = document.getElementById('themeBtn');
-const historyBtn     = document.getElementById('historyBtn');
-const historyPanel   = document.getElementById('historyPanel');
-const overlay        = document.getElementById('overlay');
-const closeHistory   = document.getElementById('closeHistory');
-const historyContent = document.getElementById('historyContent');
-const clearHistory   = document.getElementById('clearHistory');
-const keyStatus      = document.getElementById('keyStatus');
-const modalOverlay   = document.getElementById('modalOverlay');
-const keyInput       = document.getElementById('keyInput');
-const saveKeyBtn     = document.getElementById('saveKeyBtn');
-const cancelKeyBtn   = document.getElementById('cancelKeyBtn');
-const removeKeyBtn   = document.getElementById('removeKeyBtn');
+const chat            = document.getElementById('chat');
+const input           = document.getElementById('input');
+const sendBtn         = document.getElementById('sendBtn');
+const modelSelect     = document.getElementById('modelSelect');
+const imgModelSel     = document.getElementById('imgModel');
+const imgAspectSel    = document.getElementById('imgAspect');
+const themeBtn        = document.getElementById('themeBtn');
+const historyBtn      = document.getElementById('historyBtn');
+const historyPanel    = document.getElementById('historyPanel');
+const overlay         = document.getElementById('overlay');
+const closeHistoryBtn = document.getElementById('closeHistory');
+const historyContent  = document.getElementById('historyContent');
+const clearHistBtn    = document.getElementById('clearHistory');
+const keyStatus       = document.getElementById('keyStatus');
+const modalOverlay    = document.getElementById('modalOverlay');
+const keyInput        = document.getElementById('keyInput');
+const saveKeyBtn      = document.getElementById('saveKeyBtn');
+const cancelKeyBtn    = document.getElementById('cancelKeyBtn');
+const removeKeyBtn    = document.getElementById('removeKeyBtn');
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let messages     = [{ role: 'system', content: SYSTEM_PROMPT }];
-let pendingModel = null;
+let messages      = [{ role: 'system', content: SYSTEM_PROMPT }];
+let modelBeforeChange = 'nova-fast';
 
 // ─── Key helpers ──────────────────────────────────────────────────────────────
 const getUserKey    = () => localStorage.getItem(BYOP_KEY) || null;
-const setUserKey    = (k) => { localStorage.setItem(BYOP_KEY, k); updateKeyStatus(); };
+const setUserKey    = k  => { localStorage.setItem(BYOP_KEY, k); updateKeyStatus(); };
 const removeUserKey = () => { localStorage.removeItem(BYOP_KEY); updateKeyStatus(); };
 
 function updateKeyStatus() {
@@ -69,88 +69,100 @@ function updateKeyStatus() {
 function updateModelOptions() {
   const hasKey = !!getUserKey();
   Array.from(modelSelect.options).forEach(opt => {
-    if (BYOP_MODELS.includes(opt.value)) {
-      opt.disabled = !hasKey;
-      // Add visual indicator
-      if (!hasKey && !opt.dataset.origText) {
-        opt.dataset.origText = opt.text;
-        opt.text = opt.text + ' 🔒';
-      } else if (hasKey && opt.dataset.origText) {
-        opt.text = opt.dataset.origText;
-        delete opt.dataset.origText;
-      }
+    if (!BYOP_MODELS.includes(opt.value)) return;
+    if (!hasKey) {
+      opt.disabled = false;
+    } else {
+      opt.disabled = false;
     }
   });
+  
   if (!hasKey && BYOP_MODELS.includes(modelSelect.value)) {
     modelSelect.value = 'nova-fast';
+    modelBeforeChange = 'nova-fast';
   }
 }
 
-// ─── BYOP Modal ───────────────────────────────────────────────────────────────
-keyStatus.addEventListener('click', () => openModal());
-
-function openModal(revertTo) {
-  pendingModel = revertTo || null;
+window.openModal = function() {
   const k = getUserKey();
   keyInput.value = k || '';
   removeKeyBtn.style.display = k ? 'block' : 'none';
   modalOverlay.classList.add('show');
-  keyInput.focus();
+  setTimeout(() => keyInput.focus(), 80);
+};
+
+function closeModal() {
+  modalOverlay.classList.remove('show');
 }
 
-function closeModal(revert) {
-  modalOverlay.classList.remove('show');
-  if (revert && pendingModel) {
-    modelSelect.value = pendingModel;
-  }
-  pendingModel = null;
-}
+keyStatus.addEventListener('click', window.openModal);
 
 saveKeyBtn.addEventListener('click', () => {
   const k = keyInput.value.trim();
   if (!k) { keyInput.focus(); return; }
   setUserKey(k);
-  closeModal(false);
+  closeModal();
+  
+  if (BYOP_MODELS.includes(modelBeforeChange)) {
+    modelSelect.value = modelBeforeChange;
+  }
 });
 
-cancelKeyBtn.addEventListener('click', () => closeModal(true));
+cancelKeyBtn.addEventListener('click', () => {
+  if (BYOP_MODELS.includes(modelSelect.value) && !getUserKey()) {
+    modelSelect.value = 'nova-fast';
+    modelBeforeChange = 'nova-fast';
+  }
+  closeModal();
+});
+
 modalOverlay.addEventListener('click', e => {
-  if (e.target === modalOverlay) closeModal(true);
+  if (e.target !== modalOverlay) return;
+  // Same as cancel
+  if (BYOP_MODELS.includes(modelSelect.value) && !getUserKey()) {
+    modelSelect.value = 'nova-fast';
+    modelBeforeChange = 'nova-fast';
+  }
+  closeModal();
 });
 
 removeKeyBtn.addEventListener('click', () => {
   removeUserKey();
   keyInput.value = '';
   removeKeyBtn.style.display = 'none';
-  closeModal(false);
+  closeModal();
 });
 
 keyInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') saveKeyBtn.click();
 });
 
-modelSelect.addEventListener('change', () => {
-  const v    = modelSelect.value;
-  const prev = modelSelect.dataset.prev || 'nova-fast';
-  if (BYOP_MODELS.includes(v) && !getUserKey()) {
-    openModal(prev); // will revert to prev if cancelled
-    return;
-  }
-  modelSelect.dataset.prev = v;
+modelSelect.addEventListener('mousedown', () => {
+  // Simpan nilai sebelum berubah
+  modelBeforeChange = modelSelect.value;
 });
 
-modelSelect.addEventListener('mousedown', () => {
-  modelSelect.dataset.prev = modelSelect.value;
+modelSelect.addEventListener('change', () => {
+  const selected = modelSelect.value;
+  
+  if (BYOP_MODELS.includes(selected) && !getUserKey()) {
+    window.openModal();
+    modelBeforeChange = selected; 
+    modelSelect.value = modelBeforeChange !== selected
+      ? modelBeforeChange
+      : 'nova-fast';
+    return;
+  }
+  modelBeforeChange = selected;
 });
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
-const html   = document.documentElement;
-const themes = ['auto', 'dark', 'light'];
-let themeIdx = 0;
-
+const htmlEl  = document.documentElement;
+const themes  = ['auto', 'dark', 'light'];
+let themeIdx  = 0;
 themeBtn.addEventListener('click', () => {
   themeIdx = (themeIdx + 1) % themes.length;
-  html.dataset.theme  = themes[themeIdx];
+  htmlEl.dataset.theme = themes[themeIdx];
   themeBtn.textContent = themeIdx === 0 ? '◑' : themeIdx === 1 ? '●' : '○';
 });
 
@@ -171,13 +183,14 @@ historyBtn.addEventListener('click', () => {
   renderHistory();
 });
 
-[closeHistory, overlay].forEach(el => el.addEventListener('click', closePanel));
+[closeHistoryBtn, overlay].forEach(el => el.addEventListener('click', closePanel));
+
 function closePanel() {
   historyPanel.classList.remove('open');
   overlay.classList.remove('show');
 }
 
-clearHistory.addEventListener('click', () => {
+clearHistBtn.addEventListener('click', () => {
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
 });
@@ -195,10 +208,13 @@ function saveToHistory(prompt, url, model, aspect) {
 }
 
 function deleteFromHistory(ts) {
-  const h = getHistory().filter(i => i.ts !== ts);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+  localStorage.setItem(HISTORY_KEY,
+    JSON.stringify(getHistory().filter(i => i.ts !== ts))
+  );
   renderHistory();
 }
+
+window.deleteFromHistory = deleteFromHistory;
 
 function renderHistory() {
   const h = getHistory();
@@ -210,7 +226,7 @@ function renderHistory() {
     <div class="history-item">
       <img src="${item.url}" alt="${escHtml(item.prompt)}" loading="lazy">
       <div class="h-meta">
-        <span>${escHtml(item.prompt.slice(0, 40))}${item.prompt.length > 40 ? '…' : ''}</span>
+        <span>${escHtml(item.prompt.slice(0,40))}${item.prompt.length > 40 ? '…' : ''}</span>
         <button class="h-delete" onclick="deleteFromHistory(${item.ts})">✕</button>
       </div>
     </div>
@@ -229,9 +245,9 @@ function scrollBottom() {
 
 // ─── Chat UI ──────────────────────────────────────────────────────────────────
 function addMsg(role, htmlContent) {
-  const div       = document.createElement('div');
-  div.className   = `msg ${role}`;
-  div.innerHTML   = `
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `
     <div class="avatar">${role === 'user' ? '◉' : '◈'}</div>
     <div class="bubble">${htmlContent}</div>
   `;
@@ -241,7 +257,7 @@ function addMsg(role, htmlContent) {
 }
 
 function addTyping() {
-  const div     = document.createElement('div');
+  const div = document.createElement('div');
   div.className = 'msg bot typing';
   div.innerHTML = `
     <div class="avatar">◈</div>
@@ -286,7 +302,6 @@ function renderBotMsg(text, imgPrompts) {
 async function generateImage(btn, prompt) {
   if (btn.classList.contains('loading')) return;
 
-  // Use current image UI settings
   const model  = imgModelSel.value;
   const aspect = imgAspectSel.value;
 
@@ -317,23 +332,22 @@ async function generateImage(btn, prompt) {
     imgDiv.innerHTML = `
       <img src="${objUrl}" alt="${escHtml(prompt)}">
       <div class="img-meta">
-        <span>${escHtml(prompt.slice(0, 60))}${prompt.length > 60 ? '…' : ''}</span>
+        <span>${escHtml(prompt.slice(0,60))}${prompt.length > 60 ? '…' : ''}</span>
         <span class="img-meta-tag">${model} · ${aspect}</span>
       </div>
     `;
     btn.closest('.bubble').appendChild(imgDiv);
-
     saveToHistory(prompt, objUrl, model, aspect);
     btn.remove();
     scrollBottom();
 
   } catch (err) {
-    btn.textContent = `⚠ failed — ${escHtml(err.message)}`;
+    btn.textContent = `⚠ ${escHtml(err.message)} — try again`;
     btn.classList.remove('loading');
   }
 }
 
-// ─── Send message ─────────────────────────────────────────────────────────────
+// ─── Send ─────────────────────────────────────────────────────────────────────
 async function send() {
   const text = input.value.trim();
   if (!text || sendBtn.disabled) return;
@@ -345,15 +359,15 @@ async function send() {
   addMsg('user', escHtml(text));
   messages.push({ role: 'user', content: text });
 
-  const model   = modelSelect.value;
-  const typing  = addTyping();
+  const model  = modelSelect.value;
+  const typing = addTyping();
 
   try {
     const userKey = getUserKey();
     const body    = { model, messages };
     if (userKey) body.userKey = userKey;
 
-    const res = await fetch(CHAT_URL, {
+    const res  = await fetch(CHAT_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body)
@@ -364,12 +378,16 @@ async function send() {
 
     if (!res.ok) {
       if (res.status === 403) {
-        addMsg('bot', `<span class="error">⚠ this model needs your own pollen key. <button onclick="openModal()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-family:var(--font);font-size:13px;text-decoration:underline;padding:0">add key ↗</button></span>`);
+        addMsg('bot',
+          `<span class="error">⚠ this model need a key. ` +
+          `<button onclick="openModal()" style="background:none;border:none;` +
+          `color:var(--accent2);cursor:pointer;font-family:var(--font);` +
+          `font-size:13px;text-decoration:underline;padding:0">add key ↗</button></span>`
+        );
       } else {
         throw new Error(data.detail || data.error || `error ${res.status}`);
       }
       messages.pop();
-
     } else {
       const reply = data.choices?.[0]?.message?.content || 'hmm. nothing.';
       messages.push({ role: 'assistant', content: reply });
