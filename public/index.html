@@ -9,7 +9,6 @@
 </head>
 <body>
   <div class="app">
-
     <header class="header">
       <div class="logo">glitck<span class="dot">.</span></div>
       <div class="header-actions">
@@ -24,7 +23,7 @@
           <div class="avatar">◈</div>
           <div class="bubble">
             hey. i'm <strong>glitck</strong> — your slightly unhinged AI assistant.<br>
-            ask me anything. i'll answer. probably correctly.<br>
+            pollinations API updated. make sure your pollen key is ready.<br>
             <span class="hint">💡 if i suggest an image prompt, click it to generate.</span>
           </div>
         </div>
@@ -38,26 +37,26 @@
       </div>
       <div class="model-row">
         <select id="modelSelect">
-          <optgroup label="— free —">
-            <option value="nova-fast">Amazon Nova Micro ⚡</option>
+          <optgroup label="— Fast & Cheap —">
+            <option value="nova-fast">Amazon Nova Micro</option>
+            <option value="openai-fast">OpenAI GPT-5 Nano</option>
+            <option value="gemini-fast">Gemini 2.5 Flash Lite</option>
+            <option value="mistral">Mistral Small 3.2</option>
+            <option value="qwen-coder">Qwen3 Coder 30B</option>
           </optgroup>
-          <optgroup label="— bring your own pollen —">
-            <option value="qwen-safety">Qwen3Guard 8B</option>
-            <option value="openai-fast">OpenAI GPT-5 Nano ⚡</option>
+          <optgroup label="— Powerful / Reasoning —">
             <option value="openai">OpenAI GPT-5 Mini</option>
             <option value="claude-fast">Claude Haiku 4.5</option>
-            <option value="gemini-fast">Gemini 2.5 Flash Lite ⚡</option>
-            <option value="gemini-search">Gemini 2.5 + Search 🔍</option>
-            <option value="mistral">Mistral Small 3.2</option>
             <option value="deepseek">DeepSeek V3.2 🧠</option>
-            <option value="qwen-coder">Qwen3 Coder 30B</option>
-            <option value="qwen-large">Qwen3.5 Plus 🧠</option>
-            <option value="minimax">MiniMax M2.5 🧠</option>
-            <option value="kimi">Kimi K2.5 🧠</option>
+            <option value="grok">Grok 4.1 Fast</option>
+            <option value="grok-reasoning">Grok 4.1 Reasoning 🧠</option>
+            <option value="qwen-large">Qwen3.5 Plus</option>
+          </optgroup>
+          <optgroup label="— Search & Specialty —">
+            <option value="gemini-search">Gemini 2.5 + Search 🔍</option>
             <option value="perplexity-fast">Perplexity Sonar 🔍</option>
-            <option value="perplexity-reasoning">Perplexity Reasoning 🧠</option>
-            <option value="glm">GLM-5 🧠</option>
             <option value="qwen-vision">Qwen3 VL Plus 👁️</option>
+            <option value="midijourney">MIDIjourney 🎵</option>
           </optgroup>
         </select>
         <span id="keyStatus" class="key-status"></span>
@@ -66,7 +65,6 @@
         </a>
       </div>
     </div>
-
   </div>
 
   <!-- History Panel -->
@@ -86,20 +84,17 @@
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-tag">◈ glitck. / bring your own pollen</div>
-      <h2 class="modal-title">unlock all models</h2>
+      <h2 class="modal-title">add your pollen key</h2>
       <p class="modal-desc">
-        this model uses <strong>pollen</strong> credits from your pollinations account.<br>
-        your key is stored locally — never sent to our server.
+        pollinations now requires a <strong>pollen key</strong> for generations.<br>
+        get it free at <a href="https://enter.pollinations.ai" target="_blank" class="modal-link">enter.pollinations.ai</a>.
       </p>
       <input type="password" id="keyInput" class="key-input" placeholder="pk_... or sk_...">
       <div class="modal-actions">
-        <button id="saveKeyBtn" class="modal-btn primary">save & unlock ↗</button>
+        <button id="saveKeyBtn" class="modal-btn primary">save key ↗</button>
         <button id="cancelKeyBtn" class="modal-btn">cancel</button>
       </div>
       <div class="modal-footer">
-        don't have a key? get one free →
-        <a href="https://enter.pollinations.ai" target="_blank" rel="noopener" class="modal-link">enter.pollinations.ai ↗</a>
-        <br>
         <button id="removeKeyBtn" class="modal-remove" style="display:none">remove saved key</button>
       </div>
     </div>
