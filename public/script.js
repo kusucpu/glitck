@@ -7,7 +7,7 @@ const BYOP_KEY    = 'glitck_user_pollen_key';
 
 const BYOP_MODELS = [
   'openai-fast', 'openai', 'gemini-fast', 'gemini-search',
-  'mistral', 'qwen-coder', 'qwen-large', 'qwen-vision', 'qwen-safety',
+  'mistral', 'qwen-coder', 'qwen-large', 'qwen-vision', 'llama-scout',
   'deepseek', 'minimax', 'kimi', 'glm', 'claude-fast',
   'perplexity-fast', 'perplexity-reasoning', 'midijourney'
 ];
